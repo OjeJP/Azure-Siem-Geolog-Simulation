@@ -11,9 +11,9 @@ This project provides a practical understanding of how Security Operations Cente
 
 ----
 
-## Architecture Diagram
+## Project Architecture Diagram
 
-![Project Architecture](Screenshot%202025-10-29%20at%2004.31.46.png)
+![Project Architecture](images/ProjectArchitecture.png)
 
 ### Components:
 
@@ -44,18 +44,38 @@ This project provides a practical understanding of how Security Operations Cente
 
 * Create a **Free or Paid Azure Subscription**:
   [https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account)
-* Inside your subscription, create a **Resource Group** and a **Virtual Network (VNet)**.
+* Inside your subscription, create a **Resource Group** and a **Virtual Network (VNet-SoC)**.
+
+![Resource Group](images/1.png)
+
+![Resource Group](images/2-2.png)
 
 ### **2. Deploy a Windows Virtual Machine**
 
-* Create a **Windows Server VM** (e.g., Windows Server 2019).
-* During setup:
+![Project Architecture](images/3-4.png)
 
+* Create a **Windows VM** (In this case, Windows 11).
+* During setup:
   * Allow **RDP (port 3389)** and **HTTP (port 80)**.
-  * Disable **Windows Firewall** to expose the machine.
-  * Optionally, turn off NSG rules for testing.
+
+    ![RDP](images/3-2.png)
+  * Turn off NSG rules for testing and Create a new inbound rule to allow traffic from anywhere.
+
+    ![NSG Rule](images/4.png)
+
+  * Log into the VM via RDP, Disable **Windows Firewall** to expose the machine.
+ 
+    ![RDP Login](images/7.png)
+    
+  * Ping the VM via from your local machine
+ 
+    ![Ping](images/8.png)
 
 > ⚠️ *This VM will be publicly accessible. Do not use sensitive credentials or store personal data.*
+>
+> At the end of this stage, the project's architecture is as shown below:
+
+![Part1](images/EoP1.png)
 
 ### **3. Enable Log Collection**
 
