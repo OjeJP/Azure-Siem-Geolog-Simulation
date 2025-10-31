@@ -79,39 +79,93 @@ This project provides a practical understanding of how Security Operations Cente
 
 ### **3. Enable Log Collection**
 
-* Go to **Azure Monitor → Logs → Create Log Analytics Workspace**.
-* Connect your VM to this workspace via:
+* Go to **Azure Monitor → Logs → Create Log Analytics Workspace (LAW)**. In this case, my LAW is called JPCORP-SoC-SA-1
 
-  * **Azure Portal → VM → Monitoring → Insights → Enable**
+  ![LAW1](images/9.png)
 
-### **4. Onboard Microsoft Sentinel**
+  ![LAW2](images/10.png)
+  
+* Create a **Sentinel Instance** and connect it to Log Analytics.
+  
+* Configure the **Windows Security Events via AMA** connector
 
-* Navigate to **Microsoft Sentinel → Add → Select your Log Analytics Workspace**.
-* Once onboarded, Sentinel will start collecting data from connected VMs.
+  ![WSE](images/11.png)
+  
+  ![WSE](images/12.png)
 
-### **5. Generate Logs**
+  
+* Create the **Data Collection Rule (DCR)** within sentinel, watch for extension creation
+
+    ![DCR](images/13.png)
+
+    ![DCR1](images/14.png)
+  
+    ![DCR2](images/15.png)
+  
+* Query for logs within the LAW to test the connectivity
+
+  ![Query](images/16.png)
+
+## At the end of this part, the lab architecture is shown below:
+  ![Part2](images/EoP2.png)
+  
+
+### **4. Generate Logs**
 
 * Leave your VM exposed for a few hours or days.
 * Logs will automatically start populating with brute-force, RDP, and network scan attempts.
 
-### **6. Create Attack Map Visualization**
+### **Part 5. Log Enrichment and Finding Location Data**
+  * Import a geoipsummarized.csv (as a “Sentinel Watchlist”) which contains geographic information for each block of IP addresses.
+
+    ![LE](images/17.png)
+    
+  * Within Sentinel, create the watchlist:
+
+        > Name/Alias: geoip
+        > Source type: Local File
+        > Search Key: network
+
+  * Allow the watchlist to fully import, there should be a total of roughly 54,000 rows.
+
+    ![LE](images/18.png)
+*In real life, this location data would come from a live source or it would be updated automatically on the back end by your service provider.*
+
+  * At this stage, we can view the location of the attackers based on the IPAddress
+    ```kql
+    let GeoIPDB_FULL = _GetWatchlist("geoip");
+    let WindowsEvents = SecurityEvent;
+    WindowsEvents | where EventID == 4625
+    | order by TimeGenerated desc
+    | evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network)
+    | summarize FailureCount = count() by IpAddress, latitude, longitude, cityname, countryname
+    | project FailureCount, AttackerIp = IpAddress, latitude, longitude, city = cityname, country = countryname,
+    friendly_location = strcat(cityname, " (", countryname, ")");
+    ```
+
+    ![LE](images/19.png)
+
+### **6. Attack Map Visualization**
 
 * In **Microsoft Sentinel**, open **Workbooks → Add Workbook → Windows VM Attack Map**.
-* Modify or create your own workbook using **Kusto Query Language (KQL)**:
 
-```kql
-let GeoIPDB_FULL = _GetWatchlist("geoip");
-let WindowsEvents = SecurityEvent;
-WindowsEvents | where EventID == 4625
-| order by TimeGenerated desc
-| evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network)
-| summarize FailureCount = count() by IpAddress, latitude, longitude, cityname, countryname
-| project FailureCount, AttackerIp = IpAddress, latitude, longitude, city = cityname, country = countryname,
-friendly_location = strcat(cityname, " (", countryname, ")");
-```
+  ![MV](images/20.png)
+  
+* Modify or create your own workbook using **Kusto Query Language (KQL)**:
+  ```kql
+  let GeoIPDB_FULL = _GetWatchlist("geoip");
+  let WindowsEvents = SecurityEvent;
+  WindowsEvents | where EventID == 4625
+  | order by TimeGenerated desc
+  | evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network)
+  | summarize FailureCount = count() by IpAddress, latitude, longitude, cityname, countryname
+  | project FailureCount, AttackerIp = IpAddress, latitude, longitude, city = cityname, country = countryname,
+  friendly_location = strcat(cityname, " (", countryname, ")");
+  ```
 
 * Visualize the results on a **World Map** to see attack origins.
-
+  
+  ![MV](images/21.png)
 ---
 
 ## 🧠 Learning Objectives
