@@ -1,0 +1,40 @@
+This file contains sample Kusto Query Language (KQL) scripts for use in Microsoft Sentinel to visualize attacks and generate insights.
+
+// 1️⃣ Failed RDP Logins (Brute Force Detection)
+SecurityEvent
+| where EventID == 4625
+| extend IPAddress = tostring(parse_json(AdditionalFields).["IpAddress"])
+| where isnotempty(IPAddress)
+| summarize FailedAttempts = count() by IPAddress
+| extend geo = geo_info_from_ip(IPAddress)
+| project IPAddress, FailedAttempts, geo.Country, geo.City, geo.Longitude, geo.Latitude
+| order by FailedAttempts desc
+
+// 2️⃣ Successful RDP Logins
+SecurityEvent
+| where EventID == 4624
+| extend IPAddress = tostring(parse_json(AdditionalFields).["IpAddress"])
+| summarize SuccessfulLogins = count() by IPAddress
+| extend geo = geo_info_from_ip(IPAddress)
+| project IPAddress, SuccessfulLogins, geo.Country
+
+// 3️⃣ Top Attack Sources by Country
+SecurityEvent
+| where EventID == 4625
+| extend IPAddress = tostring(parse_json(AdditionalFields).["IpAddress"])
+| extend geo = geo_info_from_ip(IPAddress)
+| summarize Attempts = count() by geo.Country
+| order by Attempts desc
+
+// 4️⃣ Geo Map Visualization (for Workbooks)
+let GeoIPDB_FULL = _GetWatchlist("geoip");
+let WindowsEvents = SecurityEvent;
+WindowsEvents | where EventID == 4625
+| order by TimeGenerated desc
+| evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network)
+| summarize FailureCount = count() by IpAddress, latitude, longitude, cityname, countryname
+| project FailureCount, AttackerIp = IpAddress, latitude, longitude, city = cityname, country = countryname,
+friendly_location = strcat(cityname, " (", countryname, ")");
+
+
+💡 You can use these in Sentinel → Logs or import them into Workbooks for custom dashboards.
