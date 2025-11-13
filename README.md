@@ -11,6 +11,14 @@ This project provides a practical understanding of how Security Operations Cente
 
 ----
 
+## 🧠 Learning Objectives
+
+* Understand how **SIEM systems** collect and correlate security logs.
+* Learn how to simulate **real-world cyberattacks** safely.
+* Visualize **global attack patterns** using geolocation mapping.
+* Build hands-on experience with **Microsoft Sentinel** and **Azure Log Analytics**.
+
+---
 ## Project Architecture Diagram
 
 ![Project Architecture](images/ProjectArchitecture.png)
@@ -166,15 +174,6 @@ This project provides a practical understanding of how Security Operations Cente
 * Visualize the results on a **World Map** to see attack origins.
   
   ![MV](images/21.png)
----
-
-## 🧠 Learning Objectives
-
-* Understand how **SIEM systems** collect and correlate security logs.
-* Learn how to simulate **real-world cyberattacks** safely.
-* Visualize **global attack patterns** using geolocation mapping.
-* Build hands-on experience with **Microsoft Sentinel** and **Azure Log Analytics**.
-
 ---
 
 ## 🧩 Possible Enhancements
